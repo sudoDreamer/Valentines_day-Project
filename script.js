@@ -1,5 +1,5 @@
 // ============================
-// CREATOR PAGE JAVASCRIPT WITH IMGUR INTEGRATION
+// CREATOR PAGE JAVASCRIPT
 // ============================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyBtn = document.getElementById('copyBtn');
     const createNewBtn = document.getElementById('createNewBtn');
 
-    let uploadedImageUrl = ''; // Now stores URL instead of Base64
+    let uploadedImageBase64 = '';
 
     // ============================
     // CHARACTER COUNTER
@@ -82,109 +82,69 @@ document.addEventListener('DOMContentLoaded', () => {
     // Remove image
     removeImageBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        uploadedImageUrl = '';
+        uploadedImageBase64 = '';
         imageUploadInput.value = '';
         imagePreview.style.display = 'none';
         uploadPlaceholder.style.display = 'block';
-        uploadPlaceholder.innerHTML = `
-            <div class="upload-icon">📁</div>
-            <p>Click to upload or drag & drop</p>
-            <small>Any size image works! Uploaded to Imgur</small>
-        `;
         previewImg.src = '';
     });
 
     // ============================
-    // IMGUR IMAGE UPLOAD
+    // IMAGE TO BASE64 CONVERSION
     // ============================
-    async function handleImageUpload(file) {
-        // Show loading state
-        uploadPlaceholder.innerHTML = `
-            <div class="upload-icon">⏳</div>
-            <p>Uploading to Imgur...</p>
-            <small>This may take a few seconds...</small>
-        `;
-        uploadPlaceholder.style.display = 'block';
-        imagePreview.style.display = 'none';
+    function handleImageUpload(file) {
+        // Check file size - STRICT limit for URL compatibility
+        if (file.size > 200 * 1024) {
+            alert('⚠️ Image is too large! Please use an image under 200KB to avoid link errors.\n\nTip: Compress your image at tinypng.com or use a smaller photo.');
+            return;
+        }
 
-        try {
-            // Upload to Imgur
-            const imgurUrl = await uploadToImgur(file);
-            
-            if (imgurUrl) {
-                // Store only the URL (tiny!)
-                uploadedImageUrl = imgurUrl;
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                // Compress image aggressively
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                // Resize to smaller dimensions for URL compatibility
+                const maxDimension = 600;
+                if (width > maxDimension || height > maxDimension) {
+                    if (width > height) {
+                        height = (height / width) * maxDimension;
+                        width = maxDimension;
+                    } else {
+                        width = (width / height) * maxDimension;
+                        height = maxDimension;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Convert to base64 with higher compression (0.6 quality)
+                uploadedImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                
+                // Check if base64 is too large (rough estimate)
+                if (uploadedImageBase64.length > 100000) {
+                    alert('⚠️ Image creates a very long link. Consider using a smaller image for best results.');
+                }
                 
                 // Show preview
-                previewImg.src = imgurUrl;
+                previewImg.src = uploadedImageBase64;
                 uploadPlaceholder.style.display = 'none';
                 imagePreview.style.display = 'block';
-                
-                console.log('✅ Image uploaded successfully:', imgurUrl);
-            } else {
-                throw new Error('Upload failed');
-            }
-        } catch (error) {
-            console.error('Image upload error:', error);
-            alert('❌ Image upload failed. Please try again or continue without an image.\n\nMake sure you have an internet connection.');
-            
-            // Reset upload area
-            uploadPlaceholder.innerHTML = `
-                <div class="upload-icon">📁</div>
-                <p>Click to upload or drag & drop</p>
-                <small>Upload failed - try again or skip</small>
-            `;
-            uploadPlaceholder.style.display = 'block';
-            imagePreview.style.display = 'none';
-            uploadedImageUrl = '';
-            imageUploadInput.value = '';
-        }
-    }
-
-    // ============================
-    // UPLOAD TO IMGUR API
-    // ============================
-    async function uploadToImgur(file) {
-        // Imgur Anonymous API - Free, no registration needed
-        const clientId = 'f62515efe59c77d'; // Public anonymous client ID
-        
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            
-            reader.onload = async (e) => {
-                try {
-                    // Get base64 data (remove data:image/...;base64, prefix)
-                    const base64Data = e.target.result.split(',')[1];
-                    
-                    // Upload to Imgur
-                    const response = await fetch('https://api.imgur.com/3/image', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Client-ID ${clientId}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            image: base64Data,
-                            type: 'base64'
-                        })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        // Return the Imgur URL (short!)
-                        resolve(data.data.link);
-                    } else {
-                        reject(new Error('Imgur API error: ' + (data.data?.error || 'Unknown error')));
-                    }
-                } catch (error) {
-                    reject(error);
-                }
             };
             
-            reader.onerror = () => reject(new Error('File read error'));
-            reader.readAsDataURL(file);
-        });
+            img.src = e.target.result;
+        };
+        
+        reader.readAsDataURL(file);
     }
 
     // ============================
@@ -202,11 +162,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Create data object (now with URL instead of Base64!)
+        // Create data object
         const data = {
             n: receiverName,
             m: customMessage,
-            i: uploadedImageUrl // Just a short URL!
+            i: uploadedImageBase64
         };
 
         // Encode data
@@ -219,8 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Display result
         generatedLinkInput.value = valentineLink;
         linkResult.style.display = 'block';
-        
-        console.log('✅ Link generated! Length:', valentineLink.length, 'characters');
         
         // Scroll to result
         linkResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -286,14 +244,9 @@ document.addEventListener('DOMContentLoaded', () => {
     createNewBtn.addEventListener('click', () => {
         // Reset form
         form.reset();
-        uploadedImageUrl = '';
+        uploadedImageBase64 = '';
         imagePreview.style.display = 'none';
         uploadPlaceholder.style.display = 'block';
-        uploadPlaceholder.innerHTML = `
-            <div class="upload-icon">📁</div>
-            <p>Click to upload or drag & drop</p>
-            <small>Any size image works! Uploaded to Imgur</small>
-        `;
         previewImg.src = '';
         charCount.textContent = '0';
         
