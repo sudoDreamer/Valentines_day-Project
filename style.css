@@ -443,6 +443,17 @@ footer {
     background: #d0d0d0;
 }
 
+/* Make NO button position fixed so it can move anywhere on screen
+   while staying above other elements and outside the white card */
+.btn-no {
+    position: fixed;
+    z-index: 9999;
+    /* start near center as a fallback; JS will reposition on load */
+    top: 60vh;
+    left: 50vw;
+    transform: translate(-50%, -50%);
+}
+
 .no-message {
     margin-top: 20px;
     color: #f5576c;

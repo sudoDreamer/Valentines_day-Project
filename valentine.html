@@ -77,16 +77,11 @@
         let noClickCount = 0;
         let yesScale = 1;
 
-        // Initialize NO button position (centered below YES button)
+        // Initialize NO button position so it sits anywhere on-screen (fixed)
+        // but always stays outside the white proposal card boundary.
         window.addEventListener('load', () => {
-            const buttonContainer = document.querySelector('.button-container');
-            const containerRect = buttonContainer.getBoundingClientRect();
-            const btnRect = noBtn.getBoundingClientRect();
-            
-            // Center the NO button horizontally, position below YES
-            noBtn.style.position = 'absolute';
-            noBtn.style.left = (containerRect.width / 2 - btnRect.width / 2) + 'px';
-            noBtn.style.top = '60px';
+            // place initially and ensure it's outside the card
+            placeNoButtonOutsideCard();
         });
 
         const noMessages = [
@@ -98,26 +93,51 @@
             "One more chance? 💝"
         ];
 
-        function moveNoButton() {
-            const buttonContainer = document.querySelector('.button-container');
-            const containerRect = buttonContainer.getBoundingClientRect();
+        // Place NO button somewhere in the viewport that does NOT overlap the
+        // white proposal card. Uses fixed positioning so it never causes page scroll.
+        function placeNoButtonOutsideCard() {
+            const card = document.querySelector('.proposal-card');
+            const cardRect = card.getBoundingClientRect();
             const btnRect = noBtn.getBoundingClientRect();
+            const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+            const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
 
-            // Calculate safe boundaries within the button container
-            const padding = 10; // Padding from edges
-            const maxX = containerRect.width - btnRect.width - (padding * 2);
-            const maxY = containerRect.height - btnRect.height - (padding * 2);
+            const margin = 12; // keep some gap from edges
 
-            // Random position within safe boundaries
-            const randomX = Math.max(padding, Math.random() * maxX);
-            const randomY = Math.max(padding, Math.random() * maxY);
+            function isOverlappingCard(x, y) {
+                // compute button rect at candidate x/y (top-left)
+                const left = x;
+                const top = y;
+                const right = x + btnRect.width;
+                const bottom = y + btnRect.height;
 
-            noBtn.style.position = 'absolute';
-            noBtn.style.left = randomX + 'px';
-            noBtn.style.top = randomY + 'px';
+                return !(right < cardRect.left || left > cardRect.right || bottom < cardRect.top || top > cardRect.bottom);
+            }
+
+            // Try random positions until we find one outside the card
+            let attempts = 0;
+            let x, y;
+            do {
+                x = Math.floor(margin + Math.random() * (vw - btnRect.width - margin * 2));
+                y = Math.floor(margin + Math.random() * (vh - btnRect.height - margin * 2));
+                attempts++;
+                // safety fallback after some attempts
+                if (attempts > 50) break;
+            } while (isOverlappingCard(x, y));
+
+            // Apply fixed position
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = x + 'px';
+            noBtn.style.top = y + 'px';
+            noBtn.style.transform = 'none';
+        }
+
+        // move on pointer events, always picking a new spot outside the card
+        function moveNoButton() {
+            placeNoButtonOutsideCard();
 
             // Grow YES button
-            yesScale += 0.1;
+            yesScale += 0.07;
             yesBtn.style.transform = `scale(${yesScale})`;
 
             // Show message
