@@ -93,9 +93,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // IMAGE TO BASE64 CONVERSION
     // ============================
     function handleImageUpload(file) {
-        // Check file size (recommend under 500KB)
-        if (file.size > 500 * 1024) {
-            alert('⚠️ Image is large! For best results, please use an image under 500KB.');
+        // Check file size - STRICT limit for URL compatibility
+        if (file.size > 200 * 1024) {
+            alert('⚠️ Image is too large! Please use an image under 200KB to avoid link errors.\n\nTip: Compress your image at tinypng.com or use a smaller photo.');
+            return;
         }
 
         const reader = new FileReader();
@@ -103,13 +104,13 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.onload = (e) => {
             const img = new Image();
             img.onload = () => {
-                // Compress image if needed
+                // Compress image aggressively
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
                 
-                // Resize if too large
-                const maxDimension = 800;
+                // Resize to smaller dimensions for URL compatibility
+                const maxDimension = 600;
                 if (width > maxDimension || height > maxDimension) {
                     if (width > height) {
                         height = (height / width) * maxDimension;
@@ -126,8 +127,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
                 
-                // Convert to base64 with compression
-                uploadedImageBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                // Convert to base64 with higher compression (0.6 quality)
+                uploadedImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                
+                // Check if base64 is too large (rough estimate)
+                if (uploadedImageBase64.length > 100000) {
+                    alert('⚠️ Image creates a very long link. Consider using a smaller image for best results.');
+                }
                 
                 // Show preview
                 previewImg.src = uploadedImageBase64;
@@ -176,14 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Scroll to result
         linkResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
-
-    // ============================
-    // GENERATE BUTTON
-    // ============================
-    generateBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        form.dispatchEvent(new Event('submit'));
     });
 
     // ============================
