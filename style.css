@@ -359,6 +359,8 @@ footer {
     text-align: center;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     position: relative;
+    min-height: 500px;
+    overflow: hidden;
 }
 
 .proposal-emoji {
@@ -395,8 +397,9 @@ footer {
     gap: 20px;
     justify-content: center;
     align-items: center;
-    min-height: 100px;
+    min-height: 150px;
     position: relative;
+    margin: 20px 0;
 }
 
 .btn-yes,
@@ -415,6 +418,8 @@ footer {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     color: white;
     box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
+    position: relative;
+    z-index: 10;
 }
 
 .btn-yes:hover {
@@ -431,6 +436,9 @@ footer {
     background: #e0e0e0;
     color: #666;
     transition: all 0.2s ease;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .btn-no:hover {
@@ -661,17 +669,18 @@ footer {
     .proposal-card,
     .love-card {
         padding: 40px 25px;
+        min-height: 550px;
     }
 
     .button-container {
-        flex-direction: column;
-        gap: 15px;
+        min-height: 180px;
+        padding: 10px;
     }
 
     .btn-yes,
     .btn-no {
-        width: 100%;
         padding: 15px 30px;
+        font-size: 1.2rem;
     }
 
     .link-box {

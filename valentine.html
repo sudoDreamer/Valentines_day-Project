@@ -77,6 +77,18 @@
         let noClickCount = 0;
         let yesScale = 1;
 
+        // Initialize NO button position (centered below YES button)
+        window.addEventListener('load', () => {
+            const buttonContainer = document.querySelector('.button-container');
+            const containerRect = buttonContainer.getBoundingClientRect();
+            const btnRect = noBtn.getBoundingClientRect();
+            
+            // Center the NO button horizontally, position below YES
+            noBtn.style.position = 'absolute';
+            noBtn.style.left = (containerRect.width / 2 - btnRect.width / 2) + 'px';
+            noBtn.style.top = '60px';
+        });
+
         const noMessages = [
             "Are you sure? 🥺",
             "Please reconsider! 💔",
@@ -87,17 +99,18 @@
         ];
 
         function moveNoButton() {
-            const container = document.querySelector('.proposal-card');
-            const containerRect = container.getBoundingClientRect();
+            const buttonContainer = document.querySelector('.button-container');
+            const containerRect = buttonContainer.getBoundingClientRect();
             const btnRect = noBtn.getBoundingClientRect();
 
-            // Calculate safe boundaries
-            const maxX = containerRect.width - btnRect.width - 20;
-            const maxY = containerRect.height - btnRect.height - 20;
+            // Calculate safe boundaries within the button container
+            const padding = 10; // Padding from edges
+            const maxX = containerRect.width - btnRect.width - (padding * 2);
+            const maxY = containerRect.height - btnRect.height - (padding * 2);
 
-            // Random position
-            const randomX = Math.random() * maxX;
-            const randomY = Math.random() * maxY;
+            // Random position within safe boundaries
+            const randomX = Math.max(padding, Math.random() * maxX);
+            const randomY = Math.max(padding, Math.random() * maxY);
 
             noBtn.style.position = 'absolute';
             noBtn.style.left = randomX + 'px';
