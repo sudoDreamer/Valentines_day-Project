@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You Said Yes!</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Pacifico&display=swap" rel="stylesheet">
+</head>
+<body class="love-page">
+    <div class="floating-hearts"></div>
+    
+    <div class="love-container">
+        <div class="love-card">
+            <div class="celebration-emoji"></div>
+            
+            <h1 class="love-title" id="loveTitle">
+                Yay! You Said Yes!
+            </h1>
+
+            <div class="photo-frame" id="photoFrame">
+                <div class="photo-placeholder" id="photoPlaceholder">
+                    <span class="heart-icon">💝</span>
+                </div>
+                <img id="lovePhoto" src="" alt="Our Memory" style="display: none;">
+            </div>
+
+            <div class="message-box">
+                <p class="love-message" id="loveMessage">
+                    Loading your special message...
+                </p>
+            </div>
+
+            <div class="love-meter">
+                <div class="meter-label">Love Meter</div>
+                <div class="meter-bar">
+                    <div class="meter-fill" id="meterFill"></div>
+                </div>
+                <div class="meter-text">100% ❤️</div>
+            </div>
+
+            <div class="signature">
+                <p>Forever Yours 💕</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Decode URL parameters
+        function getDataFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const encodedData = params.get('data');
+            
+            if (!encodedData) {
+                return {
+                    n: 'Beautiful',
+                    m: 'You make my heart skip a beat! Every moment with you is magical. I can\'t wait to create more memories together. You mean everything to me! ❤️',
+                    i: ''
+                };
+            }
+
+            try {
+                const jsonString = atob(decodeURIComponent(encodedData));
+                return JSON.parse(jsonString);
+            } catch (e) {
+                console.error('Error decoding data:', e);
+                return {
+                    n: 'Beautiful',
+                    m: 'You make my heart skip a beat! ❤️',
+                    i: ''
+                };
+            }
+        }
+
+        // Load and display content
+        const data = getDataFromURL();
+        
+        // Update title
+        document.getElementById('loveTitle').textContent = 
+            `${data.n}, You Said Yes! 💕`;
+
+        // Display message with typing effect
+        const messageElement = document.getElementById('loveMessage');
+        let messageIndex = 0;
+        messageElement.textContent = '';
+
+        function typeMessage() {
+            if (messageIndex < data.m.length) {
+                messageElement.textContent += data.m.charAt(messageIndex);
+                messageIndex++;
+                setTimeout(typeMessage, 30);
+            }
+        }
+
+        setTimeout(typeMessage, 500);
+
+        // Display image if available
+        if (data.i && data.i.length > 0) {
+            const photoElement = document.getElementById('lovePhoto');
+            const placeholder = document.getElementById('photoPlaceholder');
+            
+            photoElement.src = data.i;
+            photoElement.style.display = 'block';
+            placeholder.style.display = 'none';
+            
+            photoElement.onerror = function() {
+                photoElement.style.display = 'none';
+                placeholder.style.display = 'flex';
+            };
+        }
+
+        // Animate love meter
+        setTimeout(() => {
+            const meterFill = document.getElementById('meterFill');
+            meterFill.style.width = '100%';
+        }, 1000);
+
+        // Create floating hearts
+        function createFloatingHearts() {
+            const container = document.querySelector('.floating-hearts');
+            for (let i = 0; i < 20; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'floating-heart';
+                heart.textContent = '❤️';
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.animationDelay = Math.random() * 5 + 's';
+                heart.style.fontSize = (Math.random() * 25 + 15) + 'px';
+                heart.style.opacity = Math.random() * 0.5 + 0.3;
+                container.appendChild(heart);
+            }
+        }
+
+        createFloatingHearts();
+
+        // Create cursor heart trail
+        let mouseX = 0;
+        let mouseY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            if (Math.random() > 0.9) {
+                createCursorHeart(mouseX, mouseY);
+            }
+        });
+
+        function createCursorHeart(x, y) {
+            const heart = document.createElement('div');
+            heart.className = 'cursor-heart';
+            heart.textContent = '💕';
+            heart.style.left = x + 'px';
+            heart.style.top = y + 'px';
+            document.body.appendChild(heart);
+            
+            setTimeout(() => heart.remove(), 1000);
+        }
+    </script>
+</body>
+</html>
